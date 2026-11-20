@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+python-multipart
+mobile-money-analyzer
+reportlab
+jinja2
+pytest
+httpx
+pwdlib[argon2]
+PyJWT

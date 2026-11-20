@@ -1,0 +1,19 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# User & Generated files
+reports/*.pdf
+!reports/.gitkeep
+
+# IDE & Editor settings
+.vscode/
+.idea/
+*.swp

@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M-Pesa Lender Portal — Underwriter Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        safaricom: {
+                            green: '#00843D', 'green-hover': '#006E33',
+                            'green-light': '#E8F5E9', 'green-dark': '#064E3B',
+                            red: '#E21836', 'red-hover': '#BE123C',
+                            'red-light': '#FFF1F2', 'red-dark': '#991B1B',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <div class="h-1.5 w-full bg-gradient-to-r from-[#00843D] via-[#00A859] to-[#E21836]"></div>
+
+    <header class="bg-[#0b1712] border-b border-emerald-950/80 text-white sticky top-0 z-50 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#00843D] via-[#00A859] to-[#E21836] flex items-center justify-center shadow-lg shadow-emerald-900/40 border border-emerald-400/20">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
+                        Lender Portal
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#E21836]/20 text-[#E21836] border border-[#E21836]/30 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#E21836]"></span>
+                            Underwriter Review
+                        </span>
+                    </h1>
+                    <p class="text-xs text-emerald-200/70">M-Pesa Cash Flow &amp; Credit Risk Dashboard</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div id="headerLenderBadge" class="hidden md:flex items-center space-x-2 text-xs text-emerald-100 bg-emerald-950/70 px-3 py-1.5 rounded-lg border border-emerald-800/70">
+                    <span class="w-2 h-2 rounded-full bg-[#00843D]"></span>
+                    <span id="headerLenderName" class="font-medium">Lender</span>
+                </div>
+                <button type="button" id="logoutBtn" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#E21836]/10 hover:bg-[#E21836]/20 border border-[#E21836]/30 text-[#E21836] text-xs font-semibold transition-colors">
+                    Logout
+                </button>
+                <a href="/" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#00843D]/10 hover:bg-[#00843D]/20 border border-[#00843D]/30 text-[#00843D] text-xs font-semibold transition-colors">
+                    Borrower Portal
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Auth Section (Login / Register) -->
+        <section id="authSection" class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 md:p-8">
+            <div class="max-w-md mx-auto">
+                <div class="text-center mb-6">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E21836]/10 border border-[#E21836]/20 text-[#E21836] text-xs font-semibold mb-3">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#00843D]"></span>
+                        Lender Access
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-900">Sign in to your lender account</h2>
+                    <p class="text-sm text-slate-500 mt-2">Lenders must create a profile and log in before reviewing borrower submissions.</p>
+                </div>
+
+                <div class="flex gap-2 mb-6">
+                    <button id="loginTab" type="button" class="flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg bg-[#E21836] text-white transition-colors">Login</button>
+                    <button id="registerTab" type="button" class="flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg bg-slate-100 text-slate-600 transition-colors">Register</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Email</label>
+                        <input type="email" id="loginEmail" required autocomplete="email"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#00843D] focus:border-[#00843D] text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Password</label>
+                        <input type="password" id="loginPassword" required autocomplete="current-password"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#00843D] focus:border-[#00843D] text-sm">
+                    </div>
+                    <button type="submit" id="loginBtn" class="w-full py-3 rounded-xl bg-[#00843D] hover:bg-[#006E33] text-white font-semibold transition-colors">Log In</button>
+                </form>
+
+                <!-- Register Form -->
+                <form id="registerForm" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Institution Name</label>
+                        <input type="text" id="regName" required
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#00843D] focus:border-[#00843D] text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Email</label>
+                        <input type="email" id="regEmail" required autocomplete="email"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#00843D] focus:border-[#00843D] text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Password</label>
+                        <input type="password" id="regPassword" required minlength="8" autocomplete="new-password"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#00843D] focus:border-[#00843D] text-sm">
+                        <p class="text-[11px] text-slate-400 mt-1">Minimum 8 characters.</p>
+                    </div>
+                    <button type="submit" id="registerBtn" class="w-full py-3 rounded-xl bg-[#00843D] hover:bg-[#006E33] text-white font-semibold transition-colors">Create Account</button>
+                </form>
+
+                <div id="authMessage" class="hidden mt-4 p-3 rounded-lg text-sm"></div>
+            </div>
+        </section>
+
+        <!-- Token Lookup -->
+        <section id="tokenSection" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 md:p-8">
+            <div class="max-w-2xl mx-auto text-center mb-8">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E21836]/10 border border-[#E21836]/20 text-[#E21836] text-xs font-semibold mb-3">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#00843D]"></span>
+                    Lender Underwriting Review
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900">Review Borrower Application</h2>
+                <p class="text-sm text-slate-500 mt-2">
+                    Enter the submission token shared by the borrower. Every review is logged under your lender identity.
+                </p>
+                <div class="mt-3 inline-flex items-center gap-2 text-xs text-emerald-900 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
+                    <span>Tokens expire after <b class="text-[#00843D]">2 hours</b>. Borrowers can revoke access at any time.</span>
+                </div>
+            </div>
+
+            <div class="max-w-xl mx-auto">
+                <div class="space-y-5">
+                    <div>
+                        <label for="tokenInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Borrower Submission Token</label>
+                        <input type="text" id="tokenInput" placeholder="e.g. a3f8c1d2e4b56789"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#00843D] focus:border-[#00843D] text-sm font-mono tracking-wider placeholder:text-slate-400 placeholder:font-normal placeholder:tracking-normal"
+                            maxlength="16" autocomplete="off" spellcheck="false">
+                    </div>
+                    <button type="button" id="reviewBtn"
+                        class="w-full py-3.5 px-6 rounded-xl font-semibold text-white bg-[#E21836] hover:bg-[#BE123C] shadow-md shadow-red-800/20 transition-all flex items-center justify-center space-x-2">
+                        <span>Retrieve &amp; Review Application</span>
+                    </button>
+                </div>
+
+                <div id="lenderLoadingState" class="hidden mt-8 text-center space-y-4">
+                    <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-[#E21836] border-t-transparent"></div>
+                    <p class="text-sm font-semibold text-slate-800">Retrieving borrower application...</p>
+                </div>
+
+                <div id="lenderErrorBanner" class="hidden mt-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-start space-x-3">
+                    <div class="flex-1">
+                        <p class="font-semibold text-rose-900">Lookup Failed</p>
+                        <p id="lenderErrorMessage" class="text-xs text-rose-700 mt-0.5"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="lenderResultsSection" class="hidden space-y-6">
+
+            <!-- Review Header -->
+            <div class="bg-[#0b1712] rounded-2xl px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-emerald-950">
+                <div class="flex items-center gap-3">
+                    <div>
+                        <p class="text-xs text-emerald-200/60">Reviewing submission</p>
+                        <p id="lenderReviewToken" class="text-sm font-mono font-semibold text-white tracking-wider"></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <p id="lenderSubmittedAt" class="text-xs text-emerald-200/60"></p>
+                    <button type="button" id="lenderResetBtn"
+                        class="px-4 py-2 rounded-lg border border-emerald-800/80 hover:bg-emerald-950 text-xs font-semibold text-emerald-200 transition-colors">
+                        Review Another
+                    </button>
+                </div>
+            </div>
+
+            <!-- Decision Card -->
+            <div id="lenderDecisionCard" class="rounded-2xl p-6 md:p-8 border shadow-sm transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-3">
+                        <span id="lenderDecisionBadge" class="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border">Decision</span>
+                        <span class="text-xs text-slate-500 font-medium" id="lenderStatementPeriodBadge">Period</span>
+                    </div>
+                    <h3 id="lenderDecisionTitle" class="text-xl font-extrabold text-slate-900">Application —</h3>
+                    <p id="lenderDecisionReason" class="text-sm text-slate-600 max-w-xl leading-relaxed"></p>
+                </div>
+                <div class="flex flex-col items-center gap-1 shrink-0 bg-white/60 rounded-2xl p-6 border border-slate-200 shadow-sm min-w-[160px]">
+                    <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Credit Grade</p>
+                    <p id="lenderCreditGradeVal" class="text-3xl font-extrabold">—</p>
+                    <div class="mt-2 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                        <div id="lenderCreditScoreBar" class="bg-[#00843D] h-1.5 rounded-full transition-all" style="width: 0%"></div>
+                    </div>
+                    <p class="text-[11px] text-slate-400">Score: <span id="lenderCompositeScoreVal" class="font-bold text-slate-700">—</span>/100</p>
+                    <a id="lenderDownloadBtn" href="#" target="_blank"
+                        class="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#00843D] hover:bg-[#006E33] text-white text-xs font-semibold transition-colors shadow-sm">
+                        PDF Report
+                    </a>
+                </div>
+            </div>
+
+            <!-- Metrics Grid -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-1">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Recommended Limit</span>
+                    <p id="lenderRecLoanKES" class="text-lg font-extrabold text-[#00843D] leading-tight">—</p>
+                    <p id="lenderMaxRepaymentKES" class="text-[11px] text-slate-400">—</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-1">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Avg Monthly Inflow</span>
+                    <p id="lenderAvgIncomeKES" class="text-lg font-extrabold text-slate-800 leading-tight">—</p>
+                    <p id="lenderTotalIncomeKES" class="text-[11px] text-slate-400">—</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-1">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Avg Net Cash Flow</span>
+                    <p id="lenderAvgNetKES" class="text-lg font-extrabold text-slate-800 leading-tight">—</p>
+                    <p id="lenderSavingsRatePct" class="text-[11px] text-slate-400">—</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-1">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Income Stability</span>
+                    <p id="lenderStabilityScoreVal" class="text-lg font-extrabold text-slate-800 leading-tight">—</p>
+                    <p id="lenderCvVal" class="text-[11px] text-slate-400">—</p>
+                </div>
+            </div>
+
+            <p id="lenderPartialMonthsNote" class="hidden text-[11px] text-slate-500 italic px-2"></p>
+
+            <!-- Risk Panels -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-sm font-bold text-slate-800">Betting &amp; Gambling Exposure</h4>
+                        <span id="lenderBettingRiskBadge" class="text-xs font-bold px-2.5 py-1 rounded-full uppercase">—</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div class="bg-slate-50 rounded-xl p-3">
+                            <p class="text-[10px] text-slate-400 uppercase font-semibold mb-1">Total Spent</p>
+                            <p id="lenderBettingTotalVal" class="text-xs font-bold text-slate-800">—</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-3">
+                            <p class="text-[10px] text-slate-400 uppercase font-semibold mb-1">Transactions</p>
+                            <p id="lenderBettingTxCountVal" class="text-xs font-bold text-slate-800">—</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-3">
+                            <p class="text-[10px] text-slate-400 uppercase font-semibold mb-1">% of Income</p>
+                            <p id="lenderBettingIncomePctVal" class="text-xs font-bold text-slate-800">—</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-sm font-bold text-slate-800">Debt Service &amp; Obligations</h4>
+                        <span id="lenderDebtRiskBadge" class="text-xs font-bold px-2.5 py-1 rounded-full uppercase">—</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div class="bg-slate-50 rounded-xl p-3">
+                            <p class="text-[10px] text-slate-400 uppercase font-semibold mb-1">DSR</p>
+                            <p id="lenderDsrVal" class="text-xs font-bold text-slate-800">—</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-3">
+                            <p class="text-[10px] text-slate-400 uppercase font-semibold mb-1">Total Debt</p>
+                            <p id="lenderDebtTotalVal" class="text-xs font-bold text-slate-800">—</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-3">
+                            <p class="text-[10px] text-slate-400 uppercase font-semibold mb-1">Fuliza Usage</p>
+                            <p id="lenderFulizaCountVal" class="text-xs font-bold text-slate-800">—</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Why This Score? -->
+            <div id="lenderScoreBreakdownPanel" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-800">Why This Score?</h4>
+                        <p class="text-[11px] text-slate-500">Penalties applied to the composite score</p>
+                    </div>
+                </div>
+                <ul id="lenderScoreBreakdownList" class="divide-y divide-slate-100"></ul>
+            </div>
+
+            <!-- Income Composition & Fuliza Trend -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div id="lenderInflowBreakdownPanel" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 hidden">
+                    <div class="mb-3">
+                        <h4 class="text-sm font-bold text-slate-800">Income Composition</h4>
+                        <p class="text-[11px] text-slate-500">True income after excluding loan disbursements and reversals</p>
+                    </div>
+                    <div class="space-y-3" id="lenderInflowBreakdownList"></div>
+                </div>
+                <div id="lenderFulizaTrendPanel" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 hidden">
+                    <div class="mb-3">
+                        <h4 class="text-sm font-bold text-slate-800">Fuliza Usage Trend</h4>
+                        <p class="text-[11px] text-slate-500">Monthly overdraft deductions</p>
+                    </div>
+                    <p id="lenderSameDayReBorrowNote" class="text-[11px] text-slate-500 mb-2"></p>
+                    <div class="space-y-2" id="lenderFulizaTrendList"></div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+                    <h4 class="text-sm font-bold text-slate-800 mb-4">Monthly Cash Flow</h4>
+                    <div class="h-56"><canvas id="lenderCashFlowChart"></canvas></div>
+                </div>
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+                    <h4 class="text-sm font-bold text-slate-800 mb-4">Spending Breakdown</h4>
+                    <div class="h-56"><canvas id="lenderCategoryChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Monthly History -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100">
+                    <h4 class="text-sm font-bold text-slate-800">Monthly Statement History</h4>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-[#0b1b13] text-emerald-100 uppercase tracking-wider font-semibold border-b border-emerald-950">
+                                <th class="py-3 px-6">Month</th>
+                                <th class="py-3 px-6 text-right">Income (KES)</th>
+                                <th class="py-3 px-6 text-right">Outflow (KES)</th>
+                                <th class="py-3 px-6 text-right">Net Flow (KES)</th>
+                                <th class="py-3 px-6 text-center">Cash Position</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lenderHistoryTableBody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Loan Options -->
+            <div id="lenderLoanOptionsPanel" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hidden">
+                <div class="px-6 py-4 border-b border-slate-100">
+                    <h4 class="text-sm font-bold text-slate-800">Loan Options</h4>
+                    <p class="text-[11px] text-slate-500">Based on the recommended monthly installment of <span id="lenderLoanOptionInstallment" class="font-semibold text-slate-700">KES 0</span></p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-[#0b1b13] text-emerald-100 uppercase tracking-wider font-semibold border-b border-emerald-950">
+                                <th class="py-3 px-6">Term</th>
+                                <th class="py-3 px-6 text-right">Principal (KES)</th>
+                                <th class="py-3 px-6 text-right">Monthly Installment (KES)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lenderLoanOptionsTableBody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bottom Action Bar -->
+            <div class="flex flex-col sm:flex-row items-center justify-between p-6 bg-[#0b1712] rounded-2xl text-white gap-4 shadow-xl border border-emerald-950">
+                <div>
+                    <h4 class="text-base font-bold">Lender Underwriter Report</h4>
+                    <p class="text-xs text-emerald-200/70">Full PDF with risk analysis, cash flow graphs, and compliance notes.</p>
+                </div>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <button type="button" id="lenderResetBtn2"
+                        class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-emerald-800/80 hover:bg-emerald-950 text-xs font-semibold text-emerald-200 transition-colors">
+                        Review Another
+                    </button>
+                    <a id="lenderBottomDownloadBtn" href="#" target="_blank"
+                        class="flex-1 sm:flex-none inline-flex items-center justify-center space-x-2 px-6 py-2.5 rounded-xl bg-[#00843D] hover:bg-[#006E33] text-white font-semibold text-xs transition-all">
+                        Download Full PDF Report
+                    </a>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 mt-auto py-6">
+        <div class="max-w-6xl mx-auto px-4 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span class="font-medium text-slate-600">Safaricom M-PESA Financial Underwriting Engine — Lender Portal</span>
+            <div>Built with FastAPI, ReportLab, and Mobile Money Analyzer &bull; Confidential</div>
+        </div>
+    </footer>
+
+    <script>
+        let lenderCashFlowChartInstance = null;
+        let lenderCategoryChartInstance = null;
+
+        const authSection = document.getElementById('authSection');
+        const tokenSection = document.getElementById('tokenSection');
+        const lenderResultsSection = document.getElementById('lenderResultsSection');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const authMessage = document.getElementById('authMessage');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const headerLenderBadge = document.getElementById('headerLenderBadge');
+        const headerLenderName = document.getElementById('headerLenderName');
+
+        const tokenInput = document.getElementById('tokenInput');
+        const reviewBtn = document.getElementById('reviewBtn');
+        const lenderLoadingState = document.getElementById('lenderLoadingState');
+        const lenderErrorBanner = document.getElementById('lenderErrorBanner');
+        const lenderErrorMessage = document.getElementById('lenderErrorMessage');
+
+        // ---- Auth state helpers ----
+        function getJwt() { return sessionStorage.getItem('lender_jwt'); }
+        function setJwt(t) { sessionStorage.setItem('lender_jwt', t); }
+        function clearJwt() { sessionStorage.removeItem('lender_jwt'); }
+
+        function decodeJwtPayload(token) {
+            try {
+                const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+                const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+                return JSON.parse(atob(padded));
+            } catch { return null; }
+        }
+
+        function enterAuthenticatedState(lenderName) {
+            authSection.classList.add('hidden');
+            tokenSection.classList.remove('hidden');
+            lenderResultsSection.classList.add('hidden');
+            logoutBtn.classList.remove('hidden');
+            logoutBtn.classList.add('inline-flex');
+            headerLenderBadge.classList.remove('hidden');
+            headerLenderBadge.classList.add('md:flex');
+            headerLenderName.textContent = lenderName || 'Lender';
+        }
+
+        function enterUnauthenticatedState() {
+            authSection.classList.remove('hidden');
+            tokenSection.classList.add('hidden');
+            lenderResultsSection.classList.add('hidden');
+            logoutBtn.classList.add('hidden');
+            logoutBtn.classList.remove('inline-flex');
+            headerLenderBadge.classList.add('hidden');
+            headerLenderBadge.classList.remove('md:flex');
+        }
+
+        function showAuthMessage(text, isError) {
+            authMessage.textContent = text;
+            authMessage.className = `mt-4 p-3 rounded-lg text-sm ${
+                isError ? 'bg-rose-50 border border-rose-200 text-rose-700' : 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+            }`;
+            authMessage.classList.remove('hidden');
+        }
+        function hideAuthMessage() { authMessage.classList.add('hidden'); }
+
+        // ---- Tabs ----
+        loginTab.addEventListener('click', () => {
+            loginTab.className = 'flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg bg-[#E21836] text-white transition-colors';
+            registerTab.className = 'flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg bg-slate-100 text-slate-600 transition-colors';
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            hideAuthMessage();
+        });
+        registerTab.addEventListener('click', () => {
+            registerTab.className = 'flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg bg-[#E21836] text-white transition-colors';
+            loginTab.className = 'flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg bg-slate-100 text-slate-600 transition-colors';
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+            hideAuthMessage();
+        });
+
+        // ---- Register ----
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAuthMessage();
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim().toLowerCase();
+            const password = document.getElementById('regPassword').value;
+
+            if (password.length < 8) {
+                showAuthMessage('Password must be at least 8 characters.', true);
+                return;
+            }
+            try {
+                const res = await fetch('/lender/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password }),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showAuthMessage(data.detail || 'Registration failed.', true);
+                    return;
+                }
+                showAuthMessage('Account created. Please log in.', false);
+                loginTab.click();
+                document.getElementById('loginEmail').value = email;
+                document.getElementById('loginPassword').value = '';
+            } catch {
+                showAuthMessage('Network error. Please try again.', true);
+            }
+        });
+
+        // ---- Login ----
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAuthMessage();
+            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+            const password = document.getElementById('loginPassword').value;
+
+            const body = new URLSearchParams();
+            body.append('username', email);
+            body.append('password', password);
+
+            try {
+                const res = await fetch('/lender/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body,
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showAuthMessage(data.detail || 'Invalid email or password.', true);
+                    return;
+                }
+                setJwt(data.access_token);
+                enterAuthenticatedState(data.lender_name || email);
+            } catch {
+                showAuthMessage('Network error. Please try again.', true);
+            }
+        });
+
+        // ---- Logout ----
+        logoutBtn.addEventListener('click', () => {
+            clearJwt();
+            enterUnauthenticatedState();
+            document.getElementById('loginPassword').value = '';
+            hideAuthMessage();
+        });
+
+        // ---- Session restore on load ----
+        (function restoreSession() {
+            const jwt = getJwt();
+            if (!jwt) { enterUnauthenticatedState(); return; }
+            const payload = decodeJwtPayload(jwt);
+            if (!payload || (payload.exp && Date.now() / 1000 > payload.exp)) {
+                clearJwt();
+                enterUnauthenticatedState();
+                return;
+            }
+            enterAuthenticatedState(payload.email || 'Lender');
+        })();
+
+        // ---- Review ----
+        function showLenderError(msg) {
+            lenderErrorMessage.textContent = msg;
+            lenderErrorBanner.classList.remove('hidden');
+        }
+        function hideLenderError() { lenderErrorBanner.classList.add('hidden'); }
+
+        function resetToTokenEntry() {
+            lenderResultsSection.classList.add('hidden');
+            tokenSection.classList.remove('hidden');
+            tokenInput.value = '';
+            ['lenderScoreBreakdownPanel', 'lenderInflowBreakdownPanel', 'lenderFulizaTrendPanel', 'lenderLoanOptionsPanel']
+                .forEach(id => document.getElementById(id).classList.add('hidden'));
+            hideLenderError();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.getElementById('lenderResetBtn').addEventListener('click', resetToTokenEntry);
+        document.getElementById('lenderResetBtn2').addEventListener('click', resetToTokenEntry);
+        tokenInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') reviewBtn.click(); });
+
+        reviewBtn.addEventListener('click', async () => {
+            const jwt = getJwt();
+            if (!jwt) { enterUnauthenticatedState(); return; }
+
+            const token = tokenInput.value.trim().toLowerCase();
+            if (!token) { showLenderError('Please enter a submission token.'); return; }
+            if (!/^[a-f0-9]{16}$/.test(token)) {
+                showLenderError('Invalid token format. Tokens are 16 hex characters.');
+                return;
+            }
+
+            hideLenderError();
+            reviewBtn.disabled = true;
+            reviewBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            lenderLoadingState.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`/review/${token}`, {
+                    headers: { 'Authorization': 'Bearer ' + jwt },
+                });
+
+                if (response.status === 401) {
+                    clearJwt();
+                    enterUnauthenticatedState();
+                    showAuthMessage('Your session has expired. Please log in again.', true);
+                    return;
+                }
+
+                const data = await response.json();
+                if (!response.ok) {
+                    showLenderError(data.detail || 'Token not found or has expired.');
+                    return;
+                }
+
+                renderLenderResults(data.metrics, data.report_url, token, data.submitted_at, data.lender_name);
+            } catch {
+                showLenderError('Network error or server unavailable. Please try again.');
+            } finally {
+                lenderLoadingState.classList.add('hidden');
+                reviewBtn.disabled = false;
+                reviewBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        });
+
+        function renderLenderResults(metrics, reportUrl, token, submittedAt, lenderName) {
+            document.getElementById('lenderReviewToken').textContent = token;
+            if (lenderName) headerLenderName.textContent = lenderName;
+
+            if (submittedAt) {
+                const d = new Date(submittedAt.includes('T') ? submittedAt : submittedAt.replace(' ', 'T') + 'Z');
+                if (!isNaN(d)) document.getElementById('lenderSubmittedAt').textContent = `Submitted: ${d.toLocaleString()}`;
+            }
+
+            const decisionCard = document.getElementById('lenderDecisionCard');
+            const decisionBadge = document.getElementById('lenderDecisionBadge');
+            const creditGradeVal = document.getElementById('lenderCreditGradeVal');
+
+            document.getElementById('lenderDecisionTitle').textContent = `Application ${metrics.decision}`;
+            document.getElementById('lenderDecisionReason').textContent = metrics.decision_reason;
+            creditGradeVal.textContent = metrics.credit_grade;
+            document.getElementById('lenderCompositeScoreVal').textContent = metrics.composite_score;
+            document.getElementById('lenderStatementPeriodBadge').textContent = metrics.statement_period;
+            document.getElementById('lenderCreditScoreBar').style.width = `${metrics.composite_score}%`;
+
+            if (metrics.decision === 'APPROVED') {
+                decisionCard.className = 'rounded-2xl p-6 md:p-8 border shadow-sm transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-emerald-50/70 border-emerald-300';
+                decisionBadge.className = 'text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border bg-[#00843D] text-white border-transparent';
+                creditGradeVal.className = 'text-3xl font-extrabold text-[#00843D]';
+            } else if (metrics.decision === 'CONDITIONAL APPROVAL') {
+                decisionCard.className = 'rounded-2xl p-6 md:p-8 border shadow-sm transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-amber-50/70 border-amber-300';
+                decisionBadge.className = 'text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border bg-amber-500 text-white border-transparent';
+                creditGradeVal.className = 'text-3xl font-extrabold text-amber-600';
+            } else if (metrics.decision === 'MANUAL REVIEW REQUIRED') {
+                decisionCard.className = 'rounded-2xl p-6 md:p-8 border shadow-sm transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-emerald-50/40 border-emerald-200';
+                decisionBadge.className = 'text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border bg-[#006E33] text-white border-transparent';
+                creditGradeVal.className = 'text-3xl font-extrabold text-[#006E33]';
+            } else {
+                decisionCard.className = 'rounded-2xl p-6 md:p-8 border shadow-sm transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-rose-50/70 border-[#E21836]/30';
+                decisionBadge.className = 'text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border bg-[#E21836] text-white border-transparent';
+                creditGradeVal.className = 'text-3xl font-extrabold text-[#E21836]';
+            }
+            decisionBadge.textContent = metrics.decision;
+
+            document.getElementById('lenderDownloadBtn').href = reportUrl;
+            document.getElementById('lenderBottomDownloadBtn').href = reportUrl;
+
+            document.getElementById('lenderRecLoanKES').textContent = `KES ${metrics.recommended_loan_kes.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            document.getElementById('lenderMaxRepaymentKES').textContent = `Max Installment: KES ${metrics.max_monthly_repayment_kes.toLocaleString('en-US', {minimumFractionDigits: 2})} / mo`;
+            document.getElementById('lenderAvgIncomeKES').textContent = `KES ${metrics.avg_monthly_income.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            document.getElementById('lenderTotalIncomeKES').textContent = `Total Inflow: KES ${metrics.total_income.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            document.getElementById('lenderAvgNetKES').textContent = `KES ${metrics.avg_monthly_net_flow.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            document.getElementById('lenderSavingsRatePct').textContent = `Savings Margin: ${metrics.savings_rate_pct}% (${metrics.deficit_months_count} deficit mo)`;
+            document.getElementById('lenderStabilityScoreVal').textContent = `${metrics.stability_score} / 100`;
+            document.getElementById('lenderCvVal').textContent = `Volatility (CV): ${metrics.coefficient_of_variation.toFixed(3)}`;
+
+            const b = metrics.betting_metrics;
+            document.getElementById('lenderBettingRiskBadge').textContent = b.risk_level;
+            document.getElementById('lenderBettingRiskBadge').className = `text-xs font-bold px-2.5 py-1 rounded-full uppercase ${
+                b.risk_level === 'LOW' ? 'bg-emerald-100 text-[#00843D]' :
+                b.risk_level === 'MEDIUM' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-[#E21836]'
+            }`;
+            document.getElementById('lenderBettingTotalVal').textContent = `KES ${b.total_spent.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            document.getElementById('lenderBettingTxCountVal').textContent = `${b.tx_count} tx`;
+            document.getElementById('lenderBettingIncomePctVal').textContent = `${b.income_pct}% of income`;
+
+            const d = metrics.debt_metrics;
+            document.getElementById('lenderDebtRiskBadge').textContent = d.risk_level;
+            document.getElementById('lenderDebtRiskBadge').className = `text-xs font-bold px-2.5 py-1 rounded-full uppercase ${
+                d.risk_level === 'HEALTHY' ? 'bg-emerald-100 text-[#00843D]' :
+                d.risk_level === 'MODERATE' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-[#E21836]'
+            }`;
+            document.getElementById('lenderDsrVal').textContent = `${d.dsr_pct}%`;
+            document.getElementById('lenderDebtTotalVal').textContent = `KES ${d.total_paid.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            document.getElementById('lenderFulizaCountVal').textContent = `${d.fuliza_count} tx (KES ${d.fuliza_total.toLocaleString('en-US')})`;
+
+            const sbPanel = document.getElementById('lenderScoreBreakdownPanel');
+            const sbList = document.getElementById('lenderScoreBreakdownList');
+            const sb = metrics.score_breakdown || [];
+            if (sb.length > 0) {
+                sbPanel.classList.remove('hidden');
+                sbList.innerHTML = sb.map(item => `
+                    <li class="py-2 flex items-center justify-between gap-3">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-semibold text-slate-800">${item.factor}</p>
+                            <p class="text-[11px] text-slate-500">${item.detail || ''}</p>
+                        </div>
+                        <span class="shrink-0 text-xs font-bold text-[#E21836]">${item.impact > 0 ? '+' : ''}${item.impact} pts</span>
+                    </li>
+                `).join('');
+            } else { sbPanel.classList.add('hidden'); }
+
+            const ibPanel = document.getElementById('lenderInflowBreakdownPanel');
+            const ibList = document.getElementById('lenderInflowBreakdownList');
+            const ib = metrics.inflow_breakdown || [];
+            if (ib.length > 0) {
+                ibPanel.classList.remove('hidden');
+                const totalTrue = ib.reduce((s, i) => s + (i.total || 0), 0) || 1;
+                ibList.innerHTML = ib.map(item => {
+                    const pct = ((item.total || 0) / totalTrue * 100).toFixed(1);
+                    const label = item.category.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                    return `<div><div class="flex items-center justify-between text-[11px] mb-1"><span class="font-semibold text-slate-700">${label}</span><span class="text-slate-500">KES ${item.total.toLocaleString('en-US', {minimumFractionDigits: 2})} (${pct}%)</span></div><div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden"><div class="h-1.5 rounded-full bg-[#00843D]" style="width: ${pct}%"></div></div><p class="text-[10px] text-slate-400 mt-0.5">${item.tx_count} transactions</p></div>`;
+                }).join('');
+            } else { ibPanel.classList.add('hidden'); }
+
+            const fzPanel = document.getElementById('lenderFulizaTrendPanel');
+            const fzList = document.getElementById('lenderFulizaTrendList');
+            const fz = metrics.fuliza_trend || [];
+            const hasFz = fz.some(i => (i.count || 0) > 0);
+            if (hasFz) {
+                fzPanel.classList.remove('hidden');
+                const maxCount = Math.max(...fz.map(i => i.count || 0), 1);
+                fzList.innerHTML = fz.map(item => {
+                    const w = ((item.count || 0) / maxCount * 100).toFixed(0);
+                    return `<div class="flex items-center gap-2 text-[11px]"><span class="w-16 shrink-0 font-medium text-slate-600">${item.month}</span><div class="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden"><div class="h-2 rounded-full bg-amber-500" style="width: ${w}%"></div></div><span class="w-20 shrink-0 text-right text-slate-500">${item.count} tx</span></div>`;
+                }).join('');
+                const sameDay = metrics.same_day_reborrow_days || 0;
+                document.getElementById('lenderSameDayReBorrowNote').textContent = sameDay > 0
+                    ? `⚠ ${sameDay} day(s) with multiple Fuliza withdrawals.`
+                    : 'No same-day repay-and-reborrow patterns.';
+            } else { fzPanel.classList.add('hidden'); }
+
+            const loPanel = document.getElementById('lenderLoanOptionsPanel');
+            const loBody = document.getElementById('lenderLoanOptionsTableBody');
+            const lo = metrics.loan_options || {};
+            if (Object.keys(lo).length > 0) {
+                loPanel.classList.remove('hidden');
+                const monthly = metrics.max_monthly_repayment_kes || 0;
+                document.getElementById('lenderLoanOptionInstallment').textContent = `KES ${monthly.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                loBody.innerHTML = Object.entries(lo).map(([term, principal]) => {
+                    const label = term.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                    return `<tr class="hover:bg-slate-50 transition-colors"><td class="py-3 px-6 font-semibold text-slate-800">${label}</td><td class="py-3 px-6 text-right font-medium text-slate-700">KES ${principal.toLocaleString('en-US', {minimumFractionDigits: 2})}</td><td class="py-3 px-6 text-right font-semibold text-[#00843D]">KES ${monthly.toLocaleString('en-US', {minimumFractionDigits: 2})}</td></tr>`;
+                }).join('');
+            } else { loPanel.classList.add('hidden'); }
+
+            const partials = metrics.partial_months_excluded || [];
+            const pmNote = document.getElementById('lenderPartialMonthsNote');
+            if (partials.length > 0) {
+                pmNote.classList.remove('hidden');
+                pmNote.textContent = `Note: stability metrics exclude partial months (${partials.join(', ')}).`;
+            } else { pmNote.classList.add('hidden'); }
+
+            const tbody = document.getElementById('lenderHistoryTableBody');
+            tbody.innerHTML = '';
+            metrics.monthly_history.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors';
+                const isSurplus = row.net >= 0;
+                tr.innerHTML = `<td class="py-3 px-6 font-semibold text-slate-800">${row.month}</td><td class="py-3 px-6 text-right font-medium text-slate-700">KES ${row.income.toLocaleString('en-US', {minimumFractionDigits: 2})}</td><td class="py-3 px-6 text-right font-medium text-[#E21836]">KES ${row.outflow.toLocaleString('en-US', {minimumFractionDigits: 2})}</td><td class="py-3 px-6 text-right font-semibold ${isSurplus ? 'text-[#00843D]' : 'text-[#E21836]'}">KES ${row.net.toLocaleString('en-US', {minimumFractionDigits: 2})}</td><td class="py-3 px-6 text-center"><span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${isSurplus ? 'bg-emerald-100 text-[#00843D] border border-emerald-200' : 'bg-rose-100 text-[#E21836] border border-rose-200'}">${row.status}</span></td>`;
+                tbody.appendChild(tr);
+            });
+
+            renderLenderCharts(metrics);
+
+            tokenSection.classList.add('hidden');
+            lenderResultsSection.classList.remove('hidden');
+            lenderResultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderLenderCharts(metrics) {
+            const ctx1 = document.getElementById('lenderCashFlowChart').getContext('2d');
+            if (lenderCashFlowChartInstance) lenderCashFlowChartInstance.destroy();
+            const labels = metrics.monthly_history.map(m => m.month);
+            const incomes = metrics.monthly_history.map(m => m.income);
+            const outflows = metrics.monthly_history.map(m => m.outflow);
+            const nets = metrics.monthly_history.map(m => m.net);
+
+            lenderCashFlowChartInstance = new Chart(ctx1, {
+                type: 'bar',
+                data: { labels, datasets: [
+                    { type: 'line', label: 'Net Cash Flow', data: nets, borderColor: '#047857', backgroundColor: '#047857', tension: 0.3, borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#00843D', yAxisID: 'y' },
+                    { type: 'bar', label: 'Monthly Inflow', data: incomes, backgroundColor: '#00843D', borderRadius: 4, yAxisID: 'y' },
+                    { type: 'bar', label: 'Monthly Outflow', data: outflows, backgroundColor: '#E21836', borderRadius: 4, yAxisID: 'y' }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.dataset.label}: KES ${c.parsed.y.toLocaleString()}` } } },
+                    scales: { x: { grid: { display: false } }, y: { ticks: { callback: v => 'KES ' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) } } } }
+            });
+
+            const ctx2 = document.getElementById('lenderCategoryChart').getContext('2d');
+            if (lenderCategoryChartInstance) lenderCategoryChartInstance.destroy();
+            const catLabels = metrics.category_breakdown.slice(0, 6).map(c => c.category);
+            const catData = metrics.category_breakdown.slice(0, 6).map(c => c.spent);
+            const palette = ['#00843D', '#E21836', '#10B981', '#F59E0B', '#047857', '#BE123C'];
+            lenderCategoryChartInstance = new Chart(ctx2, {
+                type: 'doughnut',
+                data: { labels: catLabels, datasets: [{ data: catData, backgroundColor: palette.slice(0, catLabels.length), borderWidth: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }, tooltip: { callbacks: { label: c => ` ${c.label}: KES ${c.parsed.toLocaleString()}` } } },
+                    cutout: '65%' }
+            });
+        }
+    </script>
+</body>
+</html>
