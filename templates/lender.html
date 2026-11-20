@@ -25,6 +25,154 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
+
+
+        /* Responsive layout safeguards */
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+        body { min-width: 320px; }
+        main, main > section, main > section > div { min-width: 0; }
+        canvas { max-width: 100%; }
+
+        /* Prevent long labels, tokens and currency values from forcing overflow */
+        h1, h2, h3, h4, p, span, a, button, label, td, th {
+            overflow-wrap: anywhere;
+        }
+        input, button, select, textarea { max-width: 100%; }
+        input, select, textarea { font-size: 16px; }
+
+        /* Tables retain readable columns and scroll inside their own panel */
+        .overflow-x-auto { max-width: 100%; -webkit-overflow-scrolling: touch; }
+        .overflow-x-auto table { min-width: 620px; }
+
+        /* Chart.js needs a constrained parent when maintainAspectRatio is false */
+        .h-64, .h-56 { min-width: 0; max-width: 100%; }
+        .h-64 canvas, .h-56 canvas { display: block; }
+
+        @media (max-width: 640px) {
+            header > div {
+                height: auto !important;
+                min-height: 4rem;
+                padding-top: 0.75rem;
+                padding-bottom: 0.75rem;
+                align-items: flex-start;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+            }
+            header > div > div:first-child {
+                min-width: 0;
+                flex: 1 1 100%;
+            }
+            header > div > div:last-child {
+                min-width: 0;
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            header > div > div:last-child > a,
+            header > div > div:last-child > button {
+                min-height: 40px;
+                justify-content: center;
+            }
+            main {
+                padding-left: 0.875rem !important;
+                padding-right: 0.875rem !important;
+                padding-top: 1.25rem !important;
+                padding-bottom: 1.5rem !important;
+                gap: 1.25rem !important;
+            }
+            main > section {
+                border-radius: 1rem;
+            }
+            #uploadSection, #authSection, #tokenSection {
+                padding: 1rem !important;
+            }
+            #uploadSection .max-w-2xl,
+            #tokenSection .max-w-2xl {
+                margin-bottom: 1.25rem;
+            }
+            #dropZone { padding: 1.25rem !important; }
+            #decisionCard, #lenderDecisionCard {
+                padding: 1rem !important;
+                gap: 1rem !important;
+            }
+            #decisionCard > div,
+            #lenderDecisionCard > div {
+                width: 100%;
+                min-width: 0;
+            }
+            #decisionCard h3, #lenderDecisionCard h3 {
+                font-size: 1.25rem;
+                line-height: 1.35;
+            }
+            #decisionCard > div:last-child {
+                flex-wrap: wrap;
+                justify-content: space-around;
+                gap: 0.75rem;
+            }
+            #decisionCard > div:last-child > a {
+                display: inline-flex !important;
+                width: 100%;
+                justify-content: center;
+            }
+            #lenderDecisionCard > div:last-child {
+                min-width: 0 !important;
+                width: 100%;
+            }
+            .grid.grid-cols-3 {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+            .grid.grid-cols-3 > :last-child:nth-child(odd) {
+                grid-column: 1 / -1;
+            }
+            .bg-white.p-6, .bg-white.p-5 {
+                padding: 1rem !important;
+            }
+            .flex.items-center.justify-between {
+                gap: 0.75rem;
+            }
+            #lenderSubmittedAt {
+                overflow-wrap: anywhere;
+            }
+            #lenderResultsSection .overflow-x-auto,
+            #resultsSection .overflow-x-auto {
+                border-radius: 0.5rem;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .grid.grid-cols-2.lg\:grid-cols-4 {
+                grid-template-columns: minmax(0, 1fr) !important;
+            }
+            .grid.grid-cols-3 {
+                grid-template-columns: minmax(0, 1fr) !important;
+            }
+            .grid.grid-cols-3 > :last-child:nth-child(odd) {
+                grid-column: auto;
+            }
+            header h1 { font-size: 0.9rem; }
+            header p { font-size: 0.68rem; }
+            #decisionBadge, #lenderDecisionBadge {
+                max-width: 100%;
+                white-space: normal;
+            }
+            #decisionCard > div:first-child > div:first-child,
+            #lenderDecisionCard > div:first-child > div:first-child {
+                flex-wrap: wrap;
+            }
+            .h-64 { height: 14rem !important; }
+            .h-56 { height: 13rem !important; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
